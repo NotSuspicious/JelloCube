@@ -1,0 +1,10 @@
+*.o
+
+# Ignore Visual Studio C++ project files (only if you don't track them)
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+.vs/
+
+.DS_Store
