@@ -1,5 +1,3 @@
-<Please submit this file with your solution.>
-
 CSCI 520, Assignment 1
 
 William Zhao

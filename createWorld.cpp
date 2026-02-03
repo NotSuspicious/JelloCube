@@ -151,6 +151,7 @@ int main()
   jello.resolution=30;
   jello.forceField = 
     (struct point *)malloc(jello.resolution*jello.resolution*jello.resolution*sizeof(struct point));
+
   for (i=0; i<= jello.resolution-1; i++)
     for (j=0; j<= jello.resolution-1; j++)
       for (k=0; k<= jello.resolution-1; k++)

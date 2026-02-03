@@ -30,12 +30,38 @@ extern int sprite;
 extern int g_vMousePos[2];
 extern int g_iLeftMouseButton,g_iMiddleMouseButton,g_iRightMouseButton;
 
-struct point 
+struct point
 {
-   double x;
-   double y;
-   double z;
+  double x;
+  double y;
+  double z;
+
+  // add-assign
+  point& operator+=(const point& o) {
+    x += o.x; y += o.y; z += o.z;
+    return *this;
+  }
+
+  // subtract-assign
+  point& operator-=(const point& o) {
+    x -= o.x; y -= o.y; z -= o.z;
+    return *this;
+  }
+
+  // scalar multiply-assign
+  point& operator*=(double s) {
+    x *= s; y *= s; z *= s;
+    return *this;
+  }
+
+  // non-mutating helpers
+  point operator+(const point& o) const { point r = *this; r += o; return r; }
+  point operator-(const point& o) const { point r = *this; r -= o; return r; }
+  point operator*(double s) const { point r = *this; r *= s; return r; }
+
+  friend point operator*(double s, const point& p) { return p * s; }
 };
+
 
 // these variables control what is displayed on the screen
 extern int shear, bend, structural, pause, viewingMode, saveScreenToFile;

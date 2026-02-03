@@ -18,9 +18,6 @@ COMPILERFLAGS = -O2 -I src
 
 BINDIR = bin
 SRCS := $(wildcard src/*.cpp)
-ifeq ($(strip $(SRCS)),)
-$(error No source files found in `src` — make sure your `.cpp` files are in the `src` directory)
-endif
 OBJS := $(patsubst src/%.cpp,$(BINDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
