@@ -2,7 +2,7 @@
 # Jernej Barbic, USC
 # William Zhao, USC
 
-# Makefile
+# makefile
 KERNEL=$(shell uname -s)
 
 ifeq ($(KERNEL),Linux)
@@ -17,7 +17,17 @@ COMPILER = g++
 COMPILERFLAGS = -O2 -I src
 
 BINDIR = bin
-SRCS := $(wildcard src/*.cpp)
+
+# Hard-coded list of sources (replace/add files as needed)
+SRCS := \
+ src/jello.cpp \
+ src/physics.cpp \
+ src/input.cpp \
+ src/pic.cpp \
+ src/ppm.cpp \
+ src/showCube.cpp
+
+# Map src/xxx.cpp -> bin/xxx.o
 OBJS := $(patsubst src/%.cpp,$(BINDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
@@ -27,13 +37,16 @@ all: jello createWorld
 jello: $(OBJS)
 	$(COMPILER) $(COMPILERFLAGS) -o $@ $(OBJS) $(LIBRARIES)
 
-$(BINDIR):
-	mkdir -p $(BINDIR)
-
-$(BINDIR)/%.o: src/%.cpp | $(BINDIR)
+# Generic rule: compile src/%.cpp to bin/%.o (creates directories as needed)
+$(BINDIR)/%.o: src/%.cpp
+	@mkdir -p $(dir $@)
 	$(COMPILER) -c $(COMPILERFLAGS) -o $@ $<
 
-createWorld: $(BINDIR)/createWorld.o
+# createWorld: assume source is src/createWorld.cpp (object -> bin/createWorld.o)
+CREATE_SRC := createWorld.cpp
+CREATE_OBJ := $(patsubst src/%.cpp,$(BINDIR)/%.o,$(CREATE_SRC))
+
+createWorld: $(CREATE_OBJ)
 	$(COMPILER) $(COMPILERFLAGS) -o $@ $^ $(LIBRARIES)
 
 clean:

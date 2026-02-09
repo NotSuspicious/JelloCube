@@ -8,12 +8,68 @@
 #include "jello.h"
 #include "physics.h"
 
+point computerHooksLaw(struct point a, struct point b, double hook, double restLength)
+{
+    point L = a - b;
+    double length = sqrt(L.x*L.x + L.y*L.y + L.z*L.z);
+    double forceMagnitude = -1 * hook * (length - restLength);
+    point force = L * (forceMagnitude / length);
+    return force;
+}
 /* Computes acceleration to every control point of the jello cube, 
    which is in state given by 'jello'.
    Returns result in array 'a'. */
 void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
-  /* for you to implement ... */
+    double kHook = jello->kElastic;
+    for (int i=0; i<=7; i++)
+      for (int j=0; j<=7; j++)
+        for (int k=0; k<=7; k++)
+        {
+            // For simplicity, we only consider gravity in this placeholder implementation
+            a[i][j][k].x = 0;
+            a[i][j][k].y = 0; // gravity in negative y direction
+            a[i][j][k].z = 0;
+
+            point force = {0.0f,0.0f,0.0f};
+            // Calculate structural spring forces
+            double restLength = 1.0f/7.0f;
+            force += i < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k], kHook, restLength) : point{0,0,0};
+            force += i > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k], kHook, restLength) : point{0,0,0};
+            force += j < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k], kHook, restLength) : point{0,0,0};
+            force += j > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k], kHook, restLength) : point{0,0,0};
+            force += k < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k+1], kHook, restLength) : point{0,0,0};
+            force += k > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k-1], kHook, restLength) : point{0,0,0};
+
+            // Calculate shear spring forces
+            restLength = (1.0f/7.0f) * sqrt(2);
+            force += (i < 7) && (j < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j+1][k], kHook, restLength) : point{0,0,0};
+            force += (i > 0) && (j > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j-1][k], kHook, restLength) : point{0,0,0};
+            force += (i > 0) && (j < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j+1][k], kHook, restLength) : point{0,0,0};
+            force += (i < 7) && (j > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j-1][k], kHook, restLength) : point{0,0,0};
+
+            force += (j < 7) && (k < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k+1], kHook, restLength) : point{0,0,0};
+            force += (j > 0) && (k > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k-1], kHook, restLength) : point{0,0,0};
+            force += (j > 0) && (k < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k+1], kHook, restLength) : point{0,0,0};
+            force += (j < 7) && (k > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k-1], kHook, restLength) : point{0,0,0};
+
+            force += (k < 7) && (i < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k+1], kHook, restLength) : point{0,0,0};
+            force += (k > 0) && (i > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k-1], kHook, restLength) : point{0,0,0};
+            force += (k > 0) && (i < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k-1], kHook, restLength) : point{0,0,0};
+            force += (k < 7) && (i > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k+1], kHook, restLength) : point{0,0,0};
+
+            // Calculate bend spring forces
+            restLength = 2.0f/7.0f;
+            force += i < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i+2][j][k], kHook, restLength) : point{0,0,0};
+            force += i > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i-2][j][k], kHook, restLength) : point{0,0,0};
+            force += j < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+2][k], kHook, restLength) : point{0,0,0};
+            force += j > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-2][k], kHook, restLength) : point{0,0,0};
+            force += k < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k+2], kHook, restLength) : point{0,0,0};
+            force += k > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k-2], kHook, restLength) : point{0,0,0};
+
+            // Calculate acceleration
+            a[i][j][k] += force * (1.0 / jello->mass);
+        }
 }
 
 /* performs one step of Euler Integration */

@@ -216,14 +216,7 @@ void doIdle()
   if (pause == 0)
   {
     // insert code which appropriately performs one step of the cube simulation:
-    for (int i = 0 ; i < 8 ; i++) {
-      for (int j = 0 ; j < 8 ; j++) {
-        for (int k = 0 ; k < 8 ; k++) {
-            point velocity {10*jello.dt, 0, 0};
-            jello.p[i][j][k] = jello.p[i][j][k] + velocity;
-        }
-      }
-    }
+      RK4(&jello);
   }
 
   glutPostRedisplay();
