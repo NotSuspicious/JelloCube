@@ -58,6 +58,7 @@ struct point
   point operator+(const point& o) const { point r = *this; r += o; return r; }
   point operator-(const point& o) const { point r = *this; r -= o; return r; }
   point operator*(double s) const { point r = *this; r *= s; return r; }
+  double operator*(const point& o) const {return x*o.x + y*o.y + z*o.z;}
 
   friend point operator*(double s, const point& p) { return p * s; }
 };

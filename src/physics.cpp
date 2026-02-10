@@ -8,6 +8,11 @@
 #include "jello.h"
 #include "physics.h"
 
+double PlanePointDistance(const struct point &p, const struct point &n, const double d)
+{
+    return (n.x * p.x + n.y * p.y + n.z * p.z + d)/sqrt(n.x*n.x + n.y*n.y + n.z*n.z);
+}
+
 point computerHooksLaw(struct point a, struct point b, double hook, double restLength)
 {
     point L = a - b;
@@ -29,7 +34,7 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
             // For simplicity, we only consider gravity in this placeholder implementation
             a[i][j][k].x = 0;
             a[i][j][k].y = 0; // gravity in negative y direction
-            a[i][j][k].z = 0;
+            a[i][j][k].z = -1000;
 
             point force = {0.0f,0.0f,0.0f};
             // Calculate structural spring forces
@@ -66,6 +71,17 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
             force += j > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-2][k], kHook, restLength) : point{0,0,0};
             force += k < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k+2], kHook, restLength) : point{0,0,0};
             force += k > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k-2], kHook, restLength) : point{0,0,0};
+
+            // Collision Springs
+            point planeNormal = {0.0f,0.0f,1.0f};
+            point intersectionPoint = jello->p[i][j][k];
+            double dot = planeNormal * intersectionPoint;
+
+            if (dot < 0) {
+                double penetrationDepth = PlanePointDistance(intersectionPoint, planeNormal, 0.0f);
+                point springPoint = intersectionPoint + penetrationDepth * planeNormal;
+                force += -1*computerHooksLaw(intersectionPoint, springPoint, jello->kElastic, 0.0f);
+            }
 
             // Calculate acceleration
             a[i][j][k] += force * (1.0 / jello->mass);
