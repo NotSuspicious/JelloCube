@@ -8,10 +8,20 @@
 #include "jello.h"
 #include "physics.h"
 
-double PlanePointDistance(const struct point &p, const struct point &n, const double d)
+struct Plane
 {
-    return (n.x * p.x + n.y * p.y + n.z * p.z + d)/sqrt(n.x*n.x + n.y*n.y + n.z*n.z);
-}
+    union {
+        struct { double a, b, c; };
+        point normal;
+    };
+    double d;
+    double evaluate(const point &p) const {
+        return a * p.x + b * p.y + c * p.z + d;
+    }
+    double distance(const point &p) const {
+        return abs(evaluate(p)) / sqrt(a*a + b*b + c*c);
+    }
+};
 
 point computerHooksLaw(struct point a, struct point b, double hook, double restLength)
 {
@@ -21,7 +31,28 @@ point computerHooksLaw(struct point a, struct point b, double hook, double restL
     point force = L * (forceMagnitude / length);
     return force;
 }
-/* Computes acceleration to every control point of the jello cube, 
+
+static point springForceWithDamping(const point &p1, const point &p2,
+                                    const point &v1, const point &v2,
+                                    double k, double d, double restLength)
+{
+    point force = {0.0, 0.0, 0.0};
+    force += computerHooksLaw(p1, p2, k, restLength);
+
+    //damping
+    point L = p1 - p2;
+    double length = sqrt(L.x*L.x + L.y*L.y + L.z*L.z);
+    const double eps = 1e-9;
+    if (length > eps) {
+        point n = L * (1.0 / length);
+        point vRel = v1 - v2;
+        double vd = vRel * n; // dot product
+        point fdamp = n * (-d * vd);
+        force += fdamp;
+    }
+    return force;
+}
+/* Computes acceleration to every control point of the jello cube,
    which is in state given by 'jello'.
    Returns result in array 'a'. */
 void computeAcceleration(struct world * jello, struct point a[8][8][8])
@@ -34,57 +65,69 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
             // For simplicity, we only consider gravity in this placeholder implementation
             a[i][j][k].x = 0;
             a[i][j][k].y = 0; // gravity in negative y direction
-            a[i][j][k].z = -1000;
+            a[i][j][k].z = -10000;
 
             point force = {0.0f,0.0f,0.0f};
             // Calculate structural spring forces
             double restLength = 1.0f/7.0f;
-            force += i < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k], kHook, restLength) : point{0,0,0};
-            force += i > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k], kHook, restLength) : point{0,0,0};
-            force += j < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k], kHook, restLength) : point{0,0,0};
-            force += j > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k], kHook, restLength) : point{0,0,0};
-            force += k < 7 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k+1], kHook, restLength) : point{0,0,0};
-            force += k > 0 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k-1], kHook, restLength) : point{0,0,0};
+
+            if (i < 7) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k], jello->v[i][j][k], jello->v[i+1][j][k], jello->kElastic, jello->dElastic, restLength);
+            if (i > 0) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k], jello->v[i][j][k], jello->v[i-1][j][k], jello->kElastic, jello->dElastic, restLength);
+            if (j < 7) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k], jello->v[i][j][k], jello->v[i][j+1][k], jello->kElastic, jello->dElastic, restLength);
+            if (j > 0) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k], jello->v[i][j][k], jello->v[i][j-1][k], jello->kElastic, jello->dElastic, restLength);
+            if (k < 7) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k+1], jello->v[i][j][k], jello->v[i][j][k+1], jello->kElastic, jello->dElastic, restLength);
+            if (k > 0) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k-1], jello->v[i][j][k], jello->v[i][j][k-1], jello->kElastic, jello->dElastic, restLength);
 
             // Calculate shear spring forces
             restLength = (1.0f/7.0f) * sqrt(2);
-            force += (i < 7) && (j < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j+1][k], kHook, restLength) : point{0,0,0};
-            force += (i > 0) && (j > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j-1][k], kHook, restLength) : point{0,0,0};
-            force += (i > 0) && (j < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j+1][k], kHook, restLength) : point{0,0,0};
-            force += (i < 7) && (j > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j-1][k], kHook, restLength) : point{0,0,0};
+            if ((i < 7) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j+1][k], jello->v[i][j][k], jello->v[i+1][j+1][k], jello->kElastic, jello->dElastic, restLength);
+            if ((i > 0) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j-1][k], jello->v[i][j][k], jello->v[i-1][j-1][k], jello->kElastic, jello->dElastic, restLength);
+            if ((i > 0) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j+1][k], jello->v[i][j][k], jello->v[i-1][j+1][k], jello->kElastic, jello->dElastic, restLength);
+            if ((i < 7) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j-1][k], jello->v[i][j][k], jello->v[i+1][j-1][k], jello->kElastic, jello->dElastic, restLength);
 
-            force += (j < 7) && (k < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k+1], kHook, restLength) : point{0,0,0};
-            force += (j > 0) && (k > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k-1], kHook, restLength) : point{0,0,0};
-            force += (j > 0) && (k < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-1][k+1], kHook, restLength) : point{0,0,0};
-            force += (j < 7) && (k > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+1][k-1], kHook, restLength) : point{0,0,0};
+            if ((j < 7) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k+1], jello->v[i][j][k], jello->v[i][j+1][k+1], jello->kElastic, jello->dElastic, restLength);
+            if ((j > 0) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k-1], jello->v[i][j][k], jello->v[i][j-1][k-1], jello->kElastic, jello->dElastic, restLength);
+            if ((j > 0) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k+1], jello->v[i][j][k], jello->v[i][j-1][k+1], jello->kElastic, jello->dElastic, restLength);
+            if ((j < 7) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k-1], jello->v[i][j][k], jello->v[i][j+1][k-1], jello->kElastic, jello->dElastic, restLength);
 
-            force += (k < 7) && (i < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k+1], kHook, restLength) : point{0,0,0};
-            force += (k > 0) && (i > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k-1], kHook, restLength) : point{0,0,0};
-            force += (k > 0) && (i < 7) ? computerHooksLaw(jello->p[i][j][k], jello->p[i+1][j][k-1], kHook, restLength) : point{0,0,0};
-            force += (k < 7) && (i > 0) ? computerHooksLaw(jello->p[i][j][k], jello->p[i-1][j][k+1], kHook, restLength) : point{0,0,0};
+            if ((k < 7) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k+1], jello->v[i][j][k], jello->v[i+1][j][k+1], jello->kElastic, jello->dElastic, restLength);
+            if ((k > 0) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k-1], jello->v[i][j][k], jello->v[i-1][j][k-1], jello->kElastic, jello->dElastic, restLength);
+            if ((k > 0) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k-1], jello->v[i][j][k], jello->v[i+1][j][k-1], jello->kElastic, jello->dElastic, restLength);
+            if ((k < 7) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k+1], jello->v[i][j][k], jello->v[i-1][j][k+1], jello->kElastic, jello->dElastic, restLength);
 
             // Calculate bend spring forces
             restLength = 2.0f/7.0f;
-            force += i < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i+2][j][k], kHook, restLength) : point{0,0,0};
-            force += i > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i-2][j][k], kHook, restLength) : point{0,0,0};
-            force += j < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j+2][k], kHook, restLength) : point{0,0,0};
-            force += j > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j-2][k], kHook, restLength) : point{0,0,0};
-            force += k < 6 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k+2], kHook, restLength) : point{0,0,0};
-            force += k > 1 ? computerHooksLaw(jello->p[i][j][k], jello->p[i][j][k-2], kHook, restLength) : point{0,0,0};
+            if (i < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+2][j][k], jello->v[i][j][k], jello->v[i+2][j][k], jello->kElastic, jello->dElastic, restLength);
+            if (i > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-2][j][k], jello->v[i][j][k], jello->v[i-2][j][k], jello->kElastic, jello->dElastic, restLength);
+            if (j < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+2][k], jello->v[i][j][k], jello->v[i][j+2][k], jello->kElastic, jello->dElastic, restLength);
+            if (j > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-2][k], jello->v[i][j][k], jello->v[i][j-2][k], jello->kElastic, jello->dElastic, restLength);
+            if (k < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k+2], jello->v[i][j][k], jello->v[i][j][k+2], jello->kElastic, jello->dElastic, restLength);
+            if (k > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k-2], jello->v[i][j][k], jello->v[i][j][k-2], jello->kElastic, jello->dElastic, restLength);
 
             // Collision Springs
-            point planeNormal = {0.0f,0.0f,1.0f};
-            point intersectionPoint = jello->p[i][j][k];
-            double dot = planeNormal * intersectionPoint;
+            Plane boundaries[5] = {
+                {0.0f, 0.0f, 1.0f, 1.0f}, // z = 0 plane
+                {0.0f, 1.0f, 0.0f, 1.0f}, // y = 1 plane
+                {1.0f, 0.0f, 0.0f, 1.0f}, // x = 1 plane
+                {0.0f, -1.0f, 0.0f, 1.0f}, // y = -1 plane
+                {-1.0f, 0.0f, 0.0f, 2.0f}, // x = -1 plane
+            };
+            for (int b = 0; b < 5; b++) {
+                Plane plane = boundaries[b];
+                point intersectionPoint = jello->p[i][j][k];
 
-            if (dot < 0) {
-                double penetrationDepth = PlanePointDistance(intersectionPoint, planeNormal, 0.0f);
-                point springPoint = intersectionPoint + penetrationDepth * planeNormal;
-                force += -1*computerHooksLaw(intersectionPoint, springPoint, jello->kElastic, 0.0f);
+                double result = plane.evaluate(intersectionPoint);
+
+                if (result < 0) {
+                    double penetrationDepth = plane.distance(intersectionPoint);
+                    point springPoint = intersectionPoint + penetrationDepth * plane.normal;
+                    // use collision spring coefficients for collision response
+                    force += springForceWithDamping(intersectionPoint, springPoint, jello->v[i][j][k], point{0,0,0}, jello->kCollision, jello->dCollision, 0.0f);
+                }
             }
 
             // Calculate acceleration
-            a[i][j][k] += force * (1.0 / jello->mass);
+            a[i][j][k] += force * (1.0 / (jello->mass));
         }
 }
 
@@ -126,6 +169,7 @@ void RK4(struct world * jello)
   struct world buffer;
 
   int i,j,k;
+
 
   buffer = *jello; // make a copy of jello
 
