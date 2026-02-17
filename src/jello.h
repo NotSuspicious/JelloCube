@@ -54,6 +54,11 @@ struct point
     return *this;
   }
 
+  point& operator /=(double s) {
+    x /= s; y /= s; z /= s;
+    return *this;
+  }
+
   // non-mutating helpers
   point operator+(const point& o) const { point r = *this; r += o; return r; }
   point operator-(const point& o) const { point r = *this; r -= o; return r; }

@@ -134,6 +134,19 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
                 }
             }
 
+            //Calculate force field
+            if (jello->resolution > 0){
+                point pos = jello->p[i][j][k];
+                pos /= 4.0f; // scale to [-0.5,0.5]
+                pos += point{1.0f, 1.0f, 1.0f}; // shift to [0,1]
+                pos *= jello->resolution - 1; // shift to [0,resolution-1]
+                int indexX = (int)pos.x;
+                int indexY = (int)pos.y;
+                int indexZ = (int)pos.z;
+                point forceField = jello->forceField[indexX + indexY*jello->resolution + indexZ * jello->resolution * jello->resolution];
+                force += forceField;
+            }
+
             // Calculate acceleration
             point acc = force * (1.0 / (jello->mass/1.5f));
             a[i][j][k] += acc;
