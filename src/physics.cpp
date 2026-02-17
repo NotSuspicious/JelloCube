@@ -12,7 +12,6 @@ struct Plane
 {
     union {
         struct { double a, b, c; };
-        point normal;
     };
     double d;
     double evaluate(const point &p) const {
@@ -21,12 +20,20 @@ struct Plane
     double distance(const point &p) const {
         return abs(evaluate(p)) / sqrt(a*a + b*b + c*c);
     }
+    point normal() const {
+        double len = sqrt(a*a + b*b + c*c);
+        return point{a/len, b/len, c/len};
+    }
 };
 
 point computerHooksLaw(struct point a, struct point b, double hook, double restLength)
 {
     point L = a - b;
     double length = sqrt(L.x*L.x + L.y*L.y + L.z*L.z);
+    const double eps = 1e-9;
+    if (length < eps) {
+        return point{0.0, 0.0, 0.0};
+    }
     double forceMagnitude = -1 * hook * (length - restLength);
     point force = L * (forceMagnitude / length);
     return force;
@@ -64,8 +71,8 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
         {
             // For simplicity, we only consider gravity in this placeholder implementation
             a[i][j][k].x = 0;
-            a[i][j][k].y = 0; // gravity in negative y direction
-            a[i][j][k].z = -10000;
+            a[i][j][k].y = 0;
+            a[i][j][k].z = -1000;
 
             point force = {0.0f,0.0f,0.0f};
             // Calculate structural spring forces
@@ -120,14 +127,16 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 
                 if (result < 0) {
                     double penetrationDepth = plane.distance(intersectionPoint);
-                    point springPoint = intersectionPoint + penetrationDepth * plane.normal;
+                    point unitNormal = plane.normal();
+                    point springPoint = intersectionPoint + penetrationDepth * unitNormal;
                     // use collision spring coefficients for collision response
                     force += springForceWithDamping(intersectionPoint, springPoint, jello->v[i][j][k], point{0,0,0}, jello->kCollision, jello->dCollision, 0.0f);
                 }
             }
 
             // Calculate acceleration
-            a[i][j][k] += force * (1.0 / (jello->mass));
+            point acc = force * (1.0 / (jello->mass/1.5f));
+            a[i][j][k] += acc;
         }
 }
 
