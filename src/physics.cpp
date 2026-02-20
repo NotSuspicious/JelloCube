@@ -110,6 +110,7 @@ point computeInteractionForce(bool isInteracting, point camPos, point unused, do
    Returns result in array 'a'. */
 void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
+
     double kHook = jello->kElastic;
     for (int i=0; i<=7; i++)
       for (int j=0; j<=7; j++)
@@ -191,11 +192,6 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
                     force += springForceWithDamping(intersectionPoint, springPoint, jello->v[i][j][k], point{0,0,0}, jello->kCollision, jello->dCollision, 0.0f);
                 }
             }
-
-//            // Push edges and corners out more strongly to prevent folding
-//            if ((i == 0 || i == 7) + (j == 0 || j == 7) + (k == 0 || k == 7) >= 2) {
-//                force *= 1.5f; // Increase force by 50% for edges and corners
-//            }
 
             //Calculate force field
             if (jello->resolution > 0){
