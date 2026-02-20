@@ -88,6 +88,9 @@ struct world
   struct point * forceField; // pointer to the array of values of the force field
   struct point p[8][8][8]; // position of the 512 control points
   struct point v[8][8][8]; // velocities of the 512 control points
+  struct point p0[8][8][8]; // original/rest positions (for shape memory)
+  double kShapeMemory; // Shape memory stiffness coefficient (0.0 = no shape memory, 1.0+ = strong)
+  double bendStiffness; // Additional multiplier for bend springs (prevents folding)
 };
 
 extern struct world jello;

@@ -14,11 +14,10 @@ endif
 endif
 
 COMPILER = g++
-COMPILERFLAGS = -O2 -I src
+COMPILERFLAGS = -g -O0 -I src
 
 BINDIR = bin
 
-# Hard-coded list of sources (replace/add files as needed)
 SRCS := \
  src/jello.cpp \
  src/physics.cpp \

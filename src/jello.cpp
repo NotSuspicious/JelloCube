@@ -50,7 +50,7 @@ void myinit()
   return; 
 }
 
-void reshape(int w, int h) 
+void reshape(int w, int h)
 {
   // Prevent a divide by zero, when h is zero.
   // You can't make a window of zero height.
@@ -193,8 +193,7 @@ void display()
 void doIdle()
 {
   char s[20]="picxxxx.ppm";
-  int i;
-  
+
   // save screen to file
   s[3] = 48 + (sprite / 1000);
   s[4] = 48 + (sprite % 1000) / 100;
@@ -204,18 +203,27 @@ void doIdle()
   if (saveScreenToFile==1)
   {
     saveScreenshot(windowWidth, windowHeight, s);
-    saveScreenToFile=0; // save only once, change this if you want continuos image generation (i.e. animation)
+    saveScreenToFile=0;
     sprite++;
   }
 
-  if (sprite >= 300) // allow only 300 snapshots
+  if (sprite >= 300)
   {
     exit(0);	
   }
 
   if (pause == 0)
   {
-    // insert code which appropriately performs one step of the cube simulation:
+      // Get camera position
+      point camPos;
+      camPos.x = R * cos(Phi) * cos(Theta);
+      camPos.y = R * sin(Phi) * cos(Theta);
+      camPos.z = R * sin(Theta);
+
+      // Apply impulse to cube if left mouse button is clicked
+      // Pass camera position as interaction point
+      computeInteractionForce(g_iLeftMouseButton != 0, camPos, point{0,0,0}, 10.5);
+
       RK4(&jello);
   }
 

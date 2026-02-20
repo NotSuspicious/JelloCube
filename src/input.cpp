@@ -250,7 +250,7 @@ void readWorld (char * fileName, struct world * jello)
           &jello->p[i][j][k].x, &jello->p[i][j][k].y, &jello->p[i][j][k].z);
     }
   }
-      
+
   /* read initial point velocities */
   for (i = 0; i <= 7 ; i++)
   {
