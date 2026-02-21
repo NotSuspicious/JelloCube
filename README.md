@@ -5,6 +5,18 @@ Jernej Barbic, USC
 
 Jello simulation using mass-spring system. The simulation includes gravity, spring forces, and collision detection.
 
+<img src="https://github.com/user-attachments/assets/571c45d6-1363-405e-a9fe-e47125a42002" width=400>
+<img src="https://github.com/user-attachments/assets/74e2734b-b467-401b-bec9-ff282ff19226" width=400>
+
+
+
+<img src="https://github.com/user-attachments/assets/561795b0-6e93-4b44-a306-f4471a965caa" width=400>
+
+
+<img src="https://github.com/user-attachments/assets/4d2c2845-895f-4438-a42b-b34ce912a0cc" width=400>
+
+
+
 ### Instructions:
 Run jello, using the files in /world as input.
 
