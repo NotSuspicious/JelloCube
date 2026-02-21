@@ -5,17 +5,17 @@ Jernej Barbic, USC
 
 Jello simulation using mass-spring system. The simulation includes gravity, spring forces, and collision detection.
 
-Instructions:
+### Instructions:
 Run jello, using the files in /world as input.
 
-Features:
+### Features:
 - Mass-spring system for simulating the jello cube
 - RK4 & Euler integration methods for updating the simulation
 - Collision with a user-defined plane
 - Left-click to apply an impulse to the jello cube
 - Camera controls for zooming and rotating the view
 
-Controls:
+### Controls:
 ESC: exit application
 v: switch wireframe/triangle mode
 s: display structural springs on/off
