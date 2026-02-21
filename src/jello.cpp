@@ -207,7 +207,7 @@ void doIdle()
     sprite++;
   }
 
-  if (sprite >= 300)
+  if (sprite >= 3000)
   {
     exit(0);	
   }

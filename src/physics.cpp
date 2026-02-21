@@ -133,30 +133,36 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 
             // Calculate shear spring forces
             restLength = (1.0/7.0) * sqrt(2);
-            if ((i < 7) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j+1][k], jello->v[i][j][k], jello->v[i+1][j+1][k], jello->kElastic, jello->dElastic, restLength);
-            if ((i > 0) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j-1][k], jello->v[i][j][k], jello->v[i-1][j-1][k], jello->kElastic, jello->dElastic, restLength);
-            if ((i > 0) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j+1][k], jello->v[i][j][k], jello->v[i-1][j+1][k], jello->kElastic, jello->dElastic, restLength);
-            if ((i < 7) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j-1][k], jello->v[i][j][k], jello->v[i+1][j-1][k], jello->kElastic, jello->dElastic, restLength);
+            double shearStiffness = jello->kElastic * 0.6;
+            if ((i < 7) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j+1][k], jello->v[i][j][k], jello->v[i+1][j+1][k], shearStiffness, jello->dElastic, restLength);
+            if ((i > 0) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j-1][k], jello->v[i][j][k], jello->v[i-1][j-1][k], shearStiffness, jello->dElastic, restLength);
+            if ((i > 0) && (j < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j+1][k], jello->v[i][j][k], jello->v[i-1][j+1][k], shearStiffness, jello->dElastic, restLength);
+            if ((i < 7) && (j > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j-1][k], jello->v[i][j][k], jello->v[i+1][j-1][k], shearStiffness, jello->dElastic, restLength);
 
-            if ((j < 7) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k+1], jello->v[i][j][k], jello->v[i][j+1][k+1], jello->kElastic, jello->dElastic, restLength);
-            if ((j > 0) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k-1], jello->v[i][j][k], jello->v[i][j-1][k-1], jello->kElastic, jello->dElastic, restLength);
-            if ((j > 0) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k+1], jello->v[i][j][k], jello->v[i][j-1][k+1], jello->kElastic, jello->dElastic, restLength);
-            if ((j < 7) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k-1], jello->v[i][j][k], jello->v[i][j+1][k-1], jello->kElastic, jello->dElastic, restLength);
+            if ((j < 7) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k+1], jello->v[i][j][k], jello->v[i][j+1][k+1], shearStiffness, jello->dElastic, restLength);
+            if ((j > 0) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k-1], jello->v[i][j][k], jello->v[i][j-1][k-1], shearStiffness, jello->dElastic, restLength);
+            if ((j > 0) && (k < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-1][k+1], jello->v[i][j][k], jello->v[i][j-1][k+1], shearStiffness, jello->dElastic, restLength);
+            if ((j < 7) && (k > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+1][k-1], jello->v[i][j][k], jello->v[i][j+1][k-1], shearStiffness, jello->dElastic, restLength);
 
-            if ((k < 7) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k+1], jello->v[i][j][k], jello->v[i+1][j][k+1], jello->kElastic, jello->dElastic, restLength);
-            if ((k > 0) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k-1], jello->v[i][j][k], jello->v[i-1][j][k-1], jello->kElastic, jello->dElastic, restLength);
-            if ((k > 0) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k-1], jello->v[i][j][k], jello->v[i+1][j][k-1], jello->kElastic, jello->dElastic, restLength);
-            if ((k < 7) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k+1], jello->v[i][j][k], jello->v[i-1][j][k+1], jello->kElastic, jello->dElastic, restLength);
+            if ((k < 7) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k+1], jello->v[i][j][k], jello->v[i+1][j][k+1], shearStiffness, jello->dElastic, restLength);
+            if ((k > 0) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k-1], jello->v[i][j][k], jello->v[i-1][j][k-1], shearStiffness, jello->dElastic, restLength);
+            if ((k > 0) && (i < 7)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+1][j][k-1], jello->v[i][j][k], jello->v[i+1][j][k-1], shearStiffness, jello->dElastic, restLength);
+            if ((k < 7) && (i > 0)) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-1][j][k+1], jello->v[i][j][k], jello->v[i-1][j][k+1], shearStiffness, jello->dElastic, restLength);
 
             // Calculate bend spring forces
             restLength = 2.0f/7.0f;
-            if (i < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+2][j][k], jello->v[i][j][k], jello->v[i+2][j][k], jello->kElastic, jello->dElastic, restLength);
-            if (i > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-2][j][k], jello->v[i][j][k], jello->v[i-2][j][k], jello->kElastic, jello->dElastic, restLength);
-            if (j < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+2][k], jello->v[i][j][k], jello->v[i][j+2][k], jello->kElastic, jello->dElastic, restLength);
-            if (j > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-2][k], jello->v[i][j][k], jello->v[i][j-2][k], jello->kElastic, jello->dElastic, restLength);
-            if (k < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k+2], jello->v[i][j][k], jello->v[i][j][k+2], jello->kElastic, jello->dElastic, restLength);
-            if (k > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k-2], jello->v[i][j][k], jello->v[i][j][k-2], jello->kElastic, jello->dElastic, restLength);
+            double bendStiffness = jello->kElastic * 0.23;
+            if (i < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i+2][j][k], jello->v[i][j][k], jello->v[i+2][j][k], bendStiffness, jello->dElastic, restLength);
+            if (i > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i-2][j][k], jello->v[i][j][k], jello->v[i-2][j][k], bendStiffness, jello->dElastic, restLength);
+            if (j < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j+2][k], jello->v[i][j][k], jello->v[i][j+2][k], bendStiffness, jello->dElastic, restLength);
+            if (j > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j-2][k], jello->v[i][j][k], jello->v[i][j-2][k], bendStiffness, jello->dElastic, restLength);
+            if (k < 6) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k+2], jello->v[i][j][k], jello->v[i][j][k+2], bendStiffness, jello->dElastic, restLength);
+            if (k > 1) force += springForceWithDamping(jello->p[i][j][k], jello->p[i][j][k-2], jello->v[i][j][k], jello->v[i][j][k-2], bendStiffness, jello->dElastic, restLength);
 
+            //Make the corner points stiffer to help the cube hold its shape better
+            if ((i == 0 || i == 7) && (j == 0 || j == 7) && (k == 0 || k == 7)) {
+                force *= 1.2f;
+            }
 
             // Collision Springs
             Plane boundaries[7] = {
@@ -210,7 +216,7 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
             }
 
             // Apply gravity as force
-            const double g = 1181.0; // m/s^2
+            const double g = 1231.0; // m/s^2
             force += point{0.0, 0.0, jello->mass * g * -1.0};
 
             // Apply interaction force if applicable

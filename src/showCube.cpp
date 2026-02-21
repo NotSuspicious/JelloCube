@@ -153,18 +153,18 @@ void showCube(struct world * jello)
   
   else
   {
-    glPolygonMode(GL_FRONT, GL_FILL); 
-    
-    for (face=1; face <= 6; face++) 
+    glPolygonMode(GL_FRONT, GL_FILL);
+
+    for (face=1; face <= 6; face++)
       // face == face of a cube
       // 1 = bottom, 2 = front, 3 = left, 4 = right, 5 = far, 6 = top
     {
-      
+
       if ((face==1) || (face==3) || (face==5))
         faceFactor=-1; // flip orientation
       else
         faceFactor=1;
-      
+
 
       for (i=0; i <= 7; i++) // reset buffers
         for (j=0; j <= 7; j++)
@@ -174,7 +174,7 @@ void showCube(struct world * jello)
         }
 
       /* process triangles, accumulate normals for Gourad shading */
-  
+
       for (i=0; i <= 6; i++)
         for (j=0; j <= 6; j++) // process block (i,j)
         {
@@ -201,16 +201,16 @@ void showCube(struct world * jello)
           counter[i+1][j+1]++;
         }
 
-      
+
         /* the actual rendering */
-        for (j=1; j<=7; j++) 
+        for (j=1; j<=7; j++)
         {
 
           if (faceFactor  > 0)
             glFrontFace(GL_CCW); // the usual definition of front face
           else
             glFrontFace(GL_CW); // flip definition of orientation
-         
+
           glBegin(GL_TRIANGLE_STRIP);
           for (i=0; i<=7; i++)
           {
@@ -223,9 +223,9 @@ void showCube(struct world * jello)
           }
           glEnd();
         }
-        
-        
-    }  
+
+
+    }
   } // end for loop over faces
   glFrontFace(GL_CCW);
 }
@@ -237,6 +237,42 @@ void showBoundingBox()
   glColor4f(0.6,0.6,0.6,0);
 
   glBegin(GL_LINES);
+  // bottom face
+  for(i=-2; i<=2; i++)
+  {
+      glVertex3f(i,2,-2);
+      glVertex3f(i,-2,-2);
+  }
+
+//  // custom plane: -1.0x + 0.5y + 0.5z + 2.0 = 0
+//  // rearranged: x = 0.5y + 0.5z + 2.0
+//  glColor4f(0.5, 0.8, 0.5, 1.0);
+//
+//  for (int y = -2; y <= 2; y++)
+//  {
+//    for (int z = -2; z < 2; z++)
+//    {
+//      float x1 = 0.5f * y + 0.5f * z + 2.0f;
+//      float x2 = 0.5f * y + 0.5f * (z + 1) + 2.0f;
+//
+//      glVertex3f(x1, y, z);
+//      glVertex3f(x2, y, z + 1);
+//    }
+//  }
+//
+//  for (int z = -2; z <= 2; z++)
+//  {
+//    for (int y = -2; y < 2; y++)
+//    {
+//      float x1 = 0.5f * y + 0.5f * z + 2.0f;
+//      float x2 = 0.5f * (y + 1) + 0.5f * z + 2.0f;
+//
+//      glVertex3f(x1, y, z);
+//      glVertex3f(x2, y + 1, z);
+//    }
+//  }
+//
+//    glColor4f(0.6,0.6,0.6,0);
 
   // front face
   for(i=-2; i<=2; i++)
